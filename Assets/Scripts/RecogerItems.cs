@@ -13,5 +13,6 @@ public class RecogerItems : MonoBehaviour
             // Desactivar el objeto que ha sido recogido
             Destroy(gameObject);
             }
-    }
+    
+}
 }
