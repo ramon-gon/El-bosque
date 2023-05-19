@@ -12,7 +12,9 @@ namespace StarterAssets
 		public Vector2 look;
 		public bool jump;
 		public bool sprint;
-		public bool die;
+		public bool bailar;
+		public bool pushUp;
+
 		[Header("Movement Settings")]
 		public bool analogMovement;
 
@@ -33,10 +35,7 @@ namespace StarterAssets
 				LookInput(value.Get<Vector2>());
 			}
 		}
-		public void OnDie(InputValue value)
-		{
-			DieInput(value.isPressed);
-		}
+
 		public void OnJump(InputValue value)
 		{
 			JumpInput(value.isPressed);
@@ -45,6 +44,15 @@ namespace StarterAssets
 		public void OnSprint(InputValue value)
 		{
 			SprintInput(value.isPressed);
+		}
+
+		public void OnBailar(InputValue value)
+		{
+			BailarInput(value.isPressed);
+		}
+
+		public void OnPushUp(InputValue value){
+			PushUpInput(value.isPressed);
 		}
 #endif
 
@@ -58,14 +66,19 @@ namespace StarterAssets
 		{
 			look = newLookDirection;
 		}
-		public void DieInput(bool newDieState)
-		{
-			die = newDieState;
-		}
 
 		public void JumpInput(bool newJumpState)
 		{
 			jump = newJumpState;
+		}
+
+		public void BailarInput(bool newBailarState)
+		{
+			bailar = newBailarState;
+		}
+
+		public void PushUpInput(bool newPushUpState){
+			pushUp = newPushUpState;
 		}
 
 		public void SprintInput(bool newSprintState)

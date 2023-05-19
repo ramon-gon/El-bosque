@@ -32,16 +32,11 @@ namespace StarterAssets
         public AudioClip[] FootstepAudioClips;
         [Range(0, 1)] public float FootstepAudioVolume = 0.5f;
 
-        [Space(10)]
-        [Tooltip("The height the player can jump")]
-        public float JumpHeight = 1.2f;
+       
 
         [Tooltip("The character uses its own gravity value. The engine default is -9.81f")]
         public float Gravity = -15.0f;
-
-        [Space(10)]
-        [Tooltip("Time required to pass before being able to jump again. Set to 0f to instantly jump again")]
-        public float JumpTimeout = 0.50f;
+       
 
         [Tooltip("Time required to pass before entering the fall state. Useful for walking down stairs")]
         public float FallTimeout = 0.15f;
@@ -75,6 +70,12 @@ namespace StarterAssets
         [Tooltip("For locking the camera position on all axis")]
         public bool LockCameraPosition = false;
 
+        //variables propias
+        public bool isBailar = false;
+        public static bool morir = false;
+        public static int armadura = 3;
+        public bool isPushUp = false;
+
         // cinemachine
         private float _cinemachineTargetYaw;
         private float _cinemachineTargetPitch;
@@ -88,16 +89,17 @@ namespace StarterAssets
         private float _terminalVelocity = 53.0f;
 
         // timeout deltatime
-        private float _jumpTimeoutDelta;
         private float _fallTimeoutDelta;
 
         // animation IDs
         private int _animIDSpeed;
-        private int _animIDGrounded;
-        private int _animIDJump;
+        private int _animIDGrounded;       
         private int _animIDFreeFall;
         private int _animIDMotionSpeed;
-        private int _animIDDie;
+        private int _animIDBailar;
+        private int _animIDMuerte;
+        private int _animIDPushUp;
+
 #if ENABLE_INPUT_SYSTEM 
         private PlayerInput _playerInput;
 #endif
@@ -147,19 +149,26 @@ namespace StarterAssets
 
             AssignAnimationIDs();
 
-            // reset our timeouts on start
-            _jumpTimeoutDelta = JumpTimeout;
             _fallTimeoutDelta = FallTimeout;
         }
 
         private void Update()
         {
             _hasAnimator = TryGetComponent(out _animator);
+            if(!morir){
 
+            if(!isBailar && !isPushUp){
             JumpAndGravity();
             GroundedCheck();
             Move();
-            Die();
+            
+            }
+            Bailar();
+            PushUp();
+            }else{
+                Morir();
+            }
+            
         }
 
         private void LateUpdate()
@@ -171,10 +180,12 @@ namespace StarterAssets
         {
             _animIDSpeed = Animator.StringToHash("Speed");
             _animIDGrounded = Animator.StringToHash("Grounded");
-            _animIDJump = Animator.StringToHash("Jump");
             _animIDFreeFall = Animator.StringToHash("FreeFall");
             _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
-            _animIDDie = Animator.StringToHash("Die");
+            _animIDBailar = Animator.StringToHash("Bailar");
+            _animIDMuerte = Animator.StringToHash("Muerte");
+            _animIDPushUp = Animator.StringToHash("PushUp");
+          
         }
 
         private void GroundedCheck()
@@ -291,7 +302,6 @@ namespace StarterAssets
                 // update animator if using character
                 if (_hasAnimator)
                 {
-                    _animator.SetBool(_animIDJump, false);
                     _animator.SetBool(_animIDFreeFall, false);
                 }
 
@@ -301,29 +311,10 @@ namespace StarterAssets
                     _verticalVelocity = -2f;
                 }
 
-                // Jump
-                if (_input.jump && _jumpTimeoutDelta <= 0.0f)
-                {
-                    // the square root of H * -2 * G = how much velocity needed to reach desired height
-                    _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
-
-                    // update animator if using character
-                    if (_hasAnimator)
-                    {
-                        _animator.SetBool(_animIDJump, true);
-                    }
-                }
-
-                // jump timeout
-                if (_jumpTimeoutDelta >= 0.0f)
-                {
-                    _jumpTimeoutDelta -= Time.deltaTime;
-                }
+                
             }
             else
             {
-                // reset the jump timeout timer
-                _jumpTimeoutDelta = JumpTimeout;
 
                 // fall timeout
                 if (_fallTimeoutDelta >= 0.0f)
@@ -339,8 +330,7 @@ namespace StarterAssets
                     }
                 }
 
-                // if we are not grounded, do not jump
-                _input.jump = false;
+                
             }
 
             // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
@@ -349,18 +339,6 @@ namespace StarterAssets
                 _verticalVelocity += Gravity * Time.deltaTime;
             }
         }
-        private void Die()
-  {
-
-                // Die
-                if (_input.die)
-                {
-                 if (_hasAnimator)
-                    {
-                        _animator.SetBool(_animIDDie, true);
-                    }
-                }
-  }
 
         private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
         {
@@ -402,5 +380,52 @@ namespace StarterAssets
                 AudioSource.PlayClipAtPoint(LandingAudioClip, transform.TransformPoint(_controller.center), FootstepAudioVolume);
             }
         }
+
+        private void Bailar(){
+
+            if(!isBailar && _input.bailar){
+
+                _input.bailar = false;
+
+                if(isPushUp){
+                 isPushUp = false;
+                 _animator.SetBool(_animIDPushUp, false);
+                }
+
+                isBailar = true;
+                
+                 _animator.SetBool(_animIDBailar, true);
+            
+            }else if(_input.move != Vector2.zero){
+                isBailar = false;
+                 _animator.SetBool(_animIDBailar, false);
+            }
+        }
+
+        private void PushUp(){
+            if(!isPushUp && _input.pushUp){
+
+                _input.pushUp = false;
+
+                if(isBailar){
+                isBailar = false;
+                _animator.SetBool(_animIDBailar, false);
+                }
+                
+                isPushUp = true;
+                
+                _animator.SetBool(_animIDPushUp, true);
+            
+            }else if(_input.move != Vector2.zero){
+                isPushUp = false;
+                 _animator.SetBool(_animIDPushUp, false);
+            }
+        }
+
+        public void Morir(){          
+            _animator.SetBool(_animIDMuerte,true);
+        }
+
+        
     }
 }

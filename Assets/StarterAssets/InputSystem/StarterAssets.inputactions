@@ -42,9 +42,18 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Die",
+                    "name": "bailar",
                     "type": "Button",
-                    "id": "cbaa75c8-152f-4ab0-a427-22c5fb04f775",
+                    "id": "8e5202c2-02d4-496b-a888-445faaff997b",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "PushUp",
+                    "type": "Button",
+                    "id": "37273d68-3961-4185-a3e6-aaae50f5019a",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -230,12 +239,23 @@
                 },
                 {
                     "name": "",
-                    "id": "b0462a5c-c48d-438e-95e8-e85c791dbb1a",
-                    "path": "<Keyboard>/#(M)",
+                    "id": "8abf4bd2-e24a-45ce-8f38-acf642d4249b",
+                    "path": "<Keyboard>/g",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
-                    "action": "Die",
+                    "groups": "KeyboardMouse",
+                    "action": "bailar",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7246879b-997e-4faf-ae77-3c09d05be6c1",
+                    "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "PushUp",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
