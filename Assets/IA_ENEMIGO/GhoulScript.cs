@@ -2,16 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using StarterAssets;
 
 public class GhoulScript : MonoBehaviour
 {
+    public GameObject warrior;
+    public GameObject enemy;
+    public GameObject[] spawns;
+    public GameObject selectedRespawn;
+    public armorManager armor_manager;
     public Animator animator;
-    //public float Velocidad;
-    public float grado;
-    public Quaternion angulo;
-    //public NavMeshAgent IA;
-
-    public GameObject target;
+    public NavMeshAgent IA;
+    
 
     public AudioSource audioSource;
     public AudioClip[] musicClips;
@@ -23,10 +25,15 @@ public class GhoulScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        //Inicializar personajes
         animator = GetComponent<Animator>();
-        target = GameObject.Find("PlayerArmature");
-        //IA = GetComponent<NavMeshAgent>();
+        warrior = GameObject.Find("PlayerArmature");
+        enemy = GameObject.Find("Enemigo_IA");
+        spawns = GameObject.FindGameObjectsWithTag("Respawn");
+        selectedRespawn = GameObject.Find("Respawn");
+        IA = GetComponent<NavMeshAgent>();
 
+        //Inicializar música
         audioSource = GetComponent<AudioSource>();
         audioSource.loop = false;
         isPlayingLoop = false;
@@ -36,23 +43,16 @@ public class GhoulScript : MonoBehaviour
     void Update()
     {
         // Perseguir
-           //IA.SetDestination(target.transform.position);
-
-           //animator.SetBool("run", true);
-        
-        //Perseguir
-        var lookPos = target.transform.position - transform.position;
-        lookPos.y = 0;
-        var rotation = Quaternion.LookRotation(lookPos);
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, rotation, 2);
-
-        animator.SetBool("run", true);
-        transform.Translate(Vector3.forward * 2 * Time.deltaTime);
+        if(warrior!=null && IA!=null){
+            IABehaviour();
+        } else {
+            Debug.Log("El Jugador o el Enemigo són null!");
+        }
 
         //Música
-        float distanceToTarget = Vector3.Distance(transform.position, target.transform.position);
+        float distanceTowarrior = Vector3.Distance(transform.position, warrior.transform.position);
 
-        if (distanceToTarget <= maxDistance)
+        if (distanceTowarrior <= maxDistance)
         {
             if (!audioSource.isPlaying)
             {
@@ -72,6 +72,86 @@ public class GhoulScript : MonoBehaviour
             isPlayingLoop = false;
         }
     }
+
+    //Función IA comportamiento
+    void IABehaviour()
+    {
+        //Si la distancia es mayor a 1 persigue al jugador
+        if(Vector3.Distance(transform.position, warrior.transform.position) > 1){
+            IAStalckPlayer();
+
+        //De lo contrario ataca al jugador + respawn
+        } else {
+            IAAttackPlayer();
+
+            PerderArmadura();
+            
+            toSpawn();
+
+        }
+        
+    }
+
+    //Función IA persigue a Jugador
+    void IAStalckPlayer()
+    {
+        animator.SetBool("attack", false);
+        IA.SetDestination(warrior.transform.position);
+
+        var lookPos = warrior.transform.position - transform.position;
+        lookPos.y = 0;
+        var rotation = Quaternion.LookRotation(lookPos);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, rotation, 2);
+
+        animator.SetBool("run", true);
+        transform.Translate(Vector3.forward * 2 * Time.deltaTime);
+    }
+
+    //Función IA ataca a Jugador
+    void IAAttackPlayer()
+    {
+        animator.SetBool("run", false);
+        animator.SetBool("attack", true);
+    }
+
+    //Función respawn de IA
+    void toSpawn()
+    {
+       if(spawns.Length > 0)
+       {
+     
+           IA.enabled = false;
+            int indexRandom = UnityEngine.Random.Range(0, spawns.Length);
+
+            selectedRespawn = spawns[indexRandom];
+
+            Vector3 spawnPosition =  selectedRespawn.transform.position;
+
+        NavMeshHit navMeshHit;
+        if (NavMesh.SamplePosition(spawnPosition, out navMeshHit, 10f, NavMesh.AllAreas))
+        {
+            transform.position = navMeshHit.position;
+        }
+            IA.enabled = true;
+          
+       }
+    }
+
+    //Función perderArmadura
+    private void PerderArmadura(){
+        armorManager.armaduras -= 1;
+
+        if (armorManager.armaduras == 0)
+        {
+            //Animación de muerte
+            ThirdPersonController.morir = true;
+            //SceneManager.LoadScene(0);
+        }
+
+        armor_manager.hud.DesactivarArmadura(armorManager.armaduras);
+    }
+
+    
 
     void PlayRandomMusicClip()
     {
