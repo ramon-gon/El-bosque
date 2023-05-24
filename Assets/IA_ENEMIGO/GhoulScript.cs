@@ -119,8 +119,8 @@ public class GhoulScript : MonoBehaviour
     {
        if(spawns.Length > 0)
        {
-     
-           IA.enabled = false;
+            NavMeshAgent navMeshAgent = GetComponent<NavMeshAgent>();
+           navMeshAgent.enabled = false;
             int indexRandom = UnityEngine.Random.Range(0, spawns.Length);
 
             selectedRespawn = spawns[indexRandom];
@@ -132,7 +132,7 @@ public class GhoulScript : MonoBehaviour
         {
             transform.position = navMeshHit.position;
         }
-            IA.enabled = true;
+            navMeshAgent.enabled = true;
           
        }
     }
